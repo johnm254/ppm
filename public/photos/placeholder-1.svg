@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
+  <rect width="400" height="500" fill="#1c1420" rx="20"/>
+  <rect x="60" y="80" width="280" height="280" fill="#2a1d2e" rx="12"/>
+  <circle cx="200" cy="170" r="50" fill="#3a2540"/>
+  <path d="M110,340 Q200,260 290,340" stroke="#3a2540" stroke-width="3" fill="#3a2540"/>
+  <text x="200" y="430" text-anchor="middle" fill="#b9a7a9" font-family="serif" font-size="16" font-style="italic">A moment with you</text>
+</svg>

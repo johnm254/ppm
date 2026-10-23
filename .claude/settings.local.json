@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Start-Sleep -Seconds 2; try { $r = Invoke-WebRequest -Uri \"http://localhost:5173\" -TimeoutSec 5 -UseBasicParsing; \"HTTP $\\($r.StatusCode\\) - $\\($r.Content.Length\\) bytes\" } catch { $_.Exception.Message })",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\USER\\\\OneDrive\\\\Desktop\\\\project\\\\ppm\\\\public\\\\photos\" | Select-Object Name, @{n='KB';e={[math]::Round\\($_.Length/1KB\\)}})",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\USER\\\\OneDrive\\\\Desktop\\\\project\" -Recurse -File -ErrorAction SilentlyContinue | Where-Object { $_.Extension -match \"\\\\.\\(mp3|wav|ogg|m4a|aac|flac\\)\" } | Select-Object FullName, @{n='KB';e={[math]::Round\\($_.Length/1KB\\)}})",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\USER\\\\OneDrive\\\\Desktop\" -File -ErrorAction SilentlyContinue | Where-Object { $_.Extension -match \"\\\\.\\(mp3|wav|ogg|m4a|aac\\)\" } | Select-Object FullName, @{n='KB';e={[math]::Round\\($_.Length/1KB\\)}})",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\USER\\\\Music\" -Recurse -File -ErrorAction SilentlyContinue | Where-Object { $_.Extension -match \"\\\\.\\(mp3|wav|ogg|m4a|aac\\)\" } | Select-Object FullName, @{n='KB';e={[math]::Round\\($_.Length/1KB\\)}} | Select-Object -First 10)"
+    ]
+  }
+}

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>For Faith</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/src/styles.css" />
+</head>
+<body>
+
+  <!-- Audio -->
+  <audio id="song" loop preload="auto" src="/audio/song.mp3"></audio>
+
+  <!-- Song note label -->
+  <div id="song-note" hidden aria-hidden="true">
+    <span>♫</span>
+    <span id="song-note-text"></span>
+  </div>
+
+  <!-- Mute button -->
+  <button id="mute-btn" aria-label="Mute music" hidden>
+    <svg id="icon-sound" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+      <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+      <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+    </svg>
+    <svg id="icon-mute" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" hidden>
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+      <line x1="23" y1="9" x2="17" y2="15"/>
+      <line x1="17" y1="9" x2="23" y2="15"/>
+    </svg>
+  </button>
+
+  <!-- Particle canvas -->
+  <canvas id="particles" aria-hidden="true"></canvas>
+
+  <!-- Scene 0: Gate -->
+  <section id="gate" class="scene scene-gate">
+    <div class="gate-inner">
+      <p class="gate-line"></p>
+      <button id="open-btn" class="btn-open"></button>
+    </div>
+  </section>
+
+  <!-- Story wrapper (hidden until gate is opened) -->
+  <div id="story" hidden>
+
+    <!-- Scene 1: Start -->
+    <section id="scene-start" class="scene scene-chat">
+      <div class="chat-container">
+        <p class="scene-date"></p>
+        <div class="bubbles"></div>
+        <p class="after-line"></p>
+      </div>
+    </section>
+
+    <!-- Scene 2: Playful -->
+    <section id="scene-playful" class="scene scene-chat">
+      <div class="chat-container">
+        <p class="scene-date"></p>
+        <div class="bubbles"></div>
+        <p class="after-line"></p>
+      </div>
+    </section>
+
+    <!-- Scene 3: Photos -->
+    <section id="scene-photos" class="scene scene-photos">
+      <div class="photos-stack"></div>
+    </section>
+
+    <!-- Scene 4: Hard Day -->
+    <section id="scene-hard" class="scene scene-chat scene-hard-day">
+      <div class="chat-container">
+        <p class="scene-date"></p>
+        <div class="bubbles"></div>
+        <p class="after-line"></p>
+      </div>
+    </section>
+
+    <!-- Scene 5: Safe -->
+    <section id="scene-safe" class="scene scene-safe">
+      <div class="safe-inner">
+        <blockquote class="safe-quote"></blockquote>
+        <p class="safe-after"></p>
+      </div>
+    </section>
+
+    <!-- Scene 6: Letter -->
+    <section id="scene-letter" class="scene scene-letter">
+      <div class="letter-card">
+        <div class="letter-body"></div>
+        <p class="letter-skip">tap to skip</p>
+      </div>
+    </section>
+
+    <!-- Scene 7: Finale -->
+    <section id="scene-finale" class="scene scene-finale">
+      <div class="finale-inner">
+        <div id="heart-wrap">
+          <div id="heart" role="button" tabindex="0" aria-label="Tap the heart"></div>
+          <p id="heart-prompt"></p>
+        </div>
+        <div id="finale-question" hidden>
+          <p id="finale-q"></p>
+          <p id="finale-sub"></p>
+          <div id="finale-buttons">
+            <button id="btn-yes"></button>
+            <button id="btn-nope"></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /story -->
+
+  <!-- Yes screen — shown after she taps Yes -->
+  <div id="yes-screen" hidden aria-live="polite">
+    <div class="yes-glow"></div>
+    <div class="yes-inner">
+      <div class="yes-heart-shape"></div>
+      <h2 class="yes-names">Faith &amp; John</h2>
+      <p class="yes-date"></p>
+      <p class="yes-msg"></p>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

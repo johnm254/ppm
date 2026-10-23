@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
+  <rect width="400" height="500" fill="#1c1420" rx="20"/>
+  <rect x="60" y="80" width="280" height="280" fill="#2a1d2e" rx="12"/>
+  <path d="M200,120 C200,120 160,160 130,200 C100,240 110,290 150,300 C180,308 200,290 200,290 C200,290 220,308 250,300 C290,290 300,240 270,200 C240,160 200,120 200,120Z" fill="#3a2540"/>
+  <text x="200" y="430" text-anchor="middle" fill="#b9a7a9" font-family="serif" font-size="16" font-style="italic">Us, somehow</text>
+</svg>
