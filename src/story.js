@@ -7,62 +7,87 @@ gsap.registerPlugin(ScrollTrigger);
 
 const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-// Placeholder images shown when photos array is empty
 const PLACEHOLDERS = [
   { src: '/photos/placeholder-1.svg', caption: 'A moment with you' },
   { src: '/photos/placeholder-2.svg', caption: 'Something about this day' },
   { src: '/photos/placeholder-3.svg', caption: 'Us, somehow' },
 ];
 
-function fadeIn(el, delay = 0, y = 16) {
-  if (REDUCED) { gsap.set(el, { opacity: 1, y: 0 }); return; }
-  gsap.fromTo(el,
-    { opacity: 0, y },
-    { opacity: 1, y: 0, duration: 0.9, delay, ease: 'power2.out',
-      scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none none' }
-    }
-  );
-}
-
+// ── Chat scene with live typing indicators ────────────────
 function buildChatScene(sectionEl, sceneData, isHardDay = false) {
-  const dateEl   = sectionEl.querySelector('.scene-date');
+  const dateEl    = sectionEl.querySelector('.scene-date');
   const bubblesEl = sectionEl.querySelector('.bubbles');
-  const afterEl  = sectionEl.querySelector('.after-line');
+  const afterEl   = sectionEl.querySelector('.after-line');
 
   dateEl.textContent  = sceneData.title;
   afterEl.textContent = sceneData.after;
 
-  fadeIn(dateEl, 0, 8);
+  gsap.set([dateEl, afterEl], { opacity: 0, y: 8 });
 
-  const bubbleDelay = isHardDay ? 0.9 : 0.6;
+  if (REDUCED) {
+    gsap.set([dateEl, afterEl], { opacity: 1, y: 0 });
+    sceneData.bubbles.forEach(b => addBubble(bubblesEl, b));
+    return;
+  }
 
-  sceneData.bubbles.forEach((b, i) => {
-    const div = document.createElement('div');
-    div.className = `bubble bubble-${b.from === 'me' ? 'me' : 'her'}`;
-    div.textContent = b.text;
-    bubblesEl.appendChild(div);
+  const typingTime = isHardDay ? 1.1 : 0.65;
+  const gap        = isHardDay ? 0.5  : 0.3;
 
-    if (REDUCED) {
-      gsap.set(div, { opacity: 1, y: 0 });
-    } else {
-      gsap.fromTo(div,
-        { opacity: 0, y: 10 },
-        {
-          opacity: 1, y: 0,
-          duration: isHardDay ? 1.1 : 0.7,
-          delay: i * bubbleDelay,
-          ease: 'power2.out',
-          scrollTrigger: { trigger: bubblesEl, start: 'top 80%', toggleActions: 'play none none none' }
-        }
-      );
-    }
+  // Typing indicator element (reused)
+  const typingEl = document.createElement('div');
+  typingEl.className = 'typing-indicator';
+  typingEl.innerHTML = '<span></span><span></span><span></span>';
+  gsap.set(typingEl, { opacity: 0 });
+
+  ScrollTrigger.create({
+    trigger: sectionEl,
+    start: 'top 72%',
+    once: true,
+    onEnter: () => {
+      const tl = gsap.timeline();
+
+      // Date label in
+      tl.to(dateEl, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' });
+
+      sceneData.bubbles.forEach((b, i) => {
+        const isMe = b.from === 'me';
+
+        // Append typing indicator before this bubble appears
+        tl.call(() => {
+          typingEl.className = `typing-indicator typing-${isMe ? 'me' : 'her'}`;
+          bubblesEl.appendChild(typingEl);
+        }, null, `+=${i === 0 ? 0.15 : gap}`);
+
+        tl.to(typingEl, { opacity: 1, duration: 0.2 });
+        tl.to(typingEl, { opacity: 0, duration: 0.15 }, `+=${typingTime}`);
+
+        // Build and animate the bubble
+        tl.call(() => {
+          typingEl.remove();
+          const div = addBubble(bubblesEl, b, true);
+          gsap.fromTo(div,
+            { opacity: 0, y: 10 },
+            { opacity: 1, y: 0, duration: isHardDay ? 0.9 : 0.6, ease: 'power2.out' }
+          );
+        }, null, '<+0.08');
+      });
+
+      tl.to(afterEl, { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' }, '+=0.45');
+    },
   });
-
-  fadeIn(afterEl, sceneData.bubbles.length * bubbleDelay + 0.3, 8);
 }
 
+function addBubble(container, b, returnEl = false) {
+  const div = document.createElement('div');
+  div.className = `bubble bubble-${b.from === 'me' ? 'me' : 'her'}`;
+  div.textContent = b.text;
+  container.appendChild(div);
+  return returnEl ? div : undefined;
+}
+
+// ── Photos ────────────────────────────────────────────────
 function buildPhotosScene() {
-  const stack = document.querySelector('#scene-photos .photos-stack');
+  const stack  = document.querySelector('#scene-photos .photos-stack');
   const photos = content.photos.length > 0 ? content.photos : PLACEHOLDERS;
   let photoIndex = 0;
 
@@ -72,16 +97,15 @@ function buildPhotosScene() {
       div.className = 'photo-divider';
       div.innerHTML = `
         <div class="photo-divider-lines"><span></span><i>♡</i><span></span></div>
-        <p class="photo-divider-label">${entry.label}</p>
-      `;
+        <p class="photo-divider-label">${entry.label}</p>`;
       stack.appendChild(div);
-      if (REDUCED) {
-        gsap.set(div, { opacity: 1 });
-      } else {
+      if (!REDUCED) {
         gsap.fromTo(div, { opacity: 0 }, {
           opacity: 1, duration: 1.0, ease: 'power2.out',
           scrollTrigger: { trigger: div, start: 'top 88%', toggleActions: 'play none none none' }
         });
+      } else {
+        gsap.set(div, { opacity: 1 });
       }
       return;
     }
@@ -90,17 +114,18 @@ function buildPhotosScene() {
     item.className = 'photo-item';
 
     const img = document.createElement('img');
-    img.src     = entry.src;
-    img.alt     = entry.caption || '';
+    img.src      = entry.src;
+    img.alt      = entry.caption || '';
     img.loading  = 'lazy';
     img.decoding = 'async';
 
-    const cap = document.createElement('p');
-    cap.className   = 'photo-caption';
-    cap.textContent = entry.caption || '';
-
     item.appendChild(img);
-    if (entry.caption) item.appendChild(cap);
+    if (entry.caption) {
+      const cap = document.createElement('p');
+      cap.className   = 'photo-caption';
+      cap.textContent = entry.caption;
+      item.appendChild(cap);
+    }
     stack.appendChild(item);
 
     if (REDUCED) {
@@ -108,10 +133,10 @@ function buildPhotosScene() {
     } else {
       const tilt = photoIndex % 2 === 0 ? -2 : 2;
       gsap.fromTo(item,
-        { opacity: 0, y: 30, rotate: tilt },
+        { opacity: 0, y: 34, rotate: tilt },
         {
           opacity: 1, y: 0, rotate: 0,
-          duration: 1.0, ease: 'power2.out',
+          duration: 1.1, ease: 'power2.out',
           scrollTrigger: { trigger: item, start: 'top 88%', toggleActions: 'play none none none' }
         }
       );
@@ -120,25 +145,25 @@ function buildPhotosScene() {
   });
 }
 
+// ── Safe scene — word by word ─────────────────────────────
 function buildSafeScene() {
   const quoteEl = document.querySelector('#scene-safe .safe-quote');
   const afterEl = document.querySelector('#scene-safe .safe-after');
   afterEl.textContent = content.safe.after;
 
-  // Build word spans
   const words = content.safe.her.split(' ');
   quoteEl.innerHTML = '';
-  ['“', ...words.map((w, i) => i < words.length - 1 ? w : w + '”')]
+  ['"', ...words.map((w, i) => i < words.length - 1 ? w : w + '"')]
     .forEach(token => {
       const span = document.createElement('span');
-      span.className = 'safe-word';
-      span.textContent = token + (token === '“' ? '' : ' ');
+      span.className   = 'safe-word';
+      span.textContent = token === '"' ? token : token + ' ';
       quoteEl.appendChild(span);
     });
 
   const wordSpans = quoteEl.querySelectorAll('.safe-word');
   gsap.set(wordSpans, { opacity: 0, y: 6 });
-  gsap.set(afterEl, { opacity: 0, y: 8 });
+  gsap.set(afterEl,   { opacity: 0, y: 8 });
 
   if (REDUCED) {
     gsap.set(wordSpans, { opacity: 1, y: 0 });
@@ -149,66 +174,64 @@ function buildSafeScene() {
   ScrollTrigger.create({
     trigger: '#scene-safe',
     start: 'top 60%',
+    once: true,
     onEnter: () => {
-      gsap.to(wordSpans, {
-        opacity: 1, y: 0,
-        duration: 0.65,
-        ease: 'power2.out',
-        stagger: 0.22,
-      });
-      gsap.to(afterEl, {
-        opacity: 1, y: 0,
-        duration: 0.8,
-        ease: 'power2.out',
-        delay: wordSpans.length * 0.22 + 0.6,
-      });
+      gsap.to(wordSpans, { opacity: 1, y: 0, duration: 0.65, ease: 'power2.out', stagger: 0.22 });
+      gsap.to(afterEl,   { opacity: 1, y: 0, duration: 0.8,  ease: 'power2.out', delay: wordSpans.length * 0.22 + 0.6 });
     },
   });
 }
 
+// ── Letter ────────────────────────────────────────────────
 function buildLetterScene() {
   const bodyEl = document.querySelector('.letter-body');
   const skipEl = document.querySelector('.letter-skip');
-
-  let tw;
-  let done = false;
+  let tw, done = false;
 
   const onDone = () => {
     done = true;
     skipEl.classList.add('hidden');
-    // Animate each para visible (typewriter sets them manually)
     bodyEl.querySelectorAll('.letter-para').forEach(p => { p.style.opacity = '1'; p.style.transform = 'none'; });
   };
 
-  // Start typewriter when letter scene scrolls into view
   ScrollTrigger.create({
     trigger: '#scene-letter',
     start: 'top 60%',
-    onEnter: () => {
-      if (!tw) tw = typewriter(bodyEl, content.letter, onDone);
-    },
+    once: true,
+    onEnter: () => { if (!tw) tw = typewriter(bodyEl, content.letter, onDone); },
   });
 
-  const doSkip = () => { if (!done) { tw?.skip(); } };
+  const doSkip = () => { if (!done) tw?.skip(); };
   document.querySelector('.letter-card').addEventListener('click', doSkip);
   skipEl.addEventListener('click', doSkip);
 }
 
+// ── Finale heart entrance ─────────────────────────────────
 function buildFinaleHeart() {
   const heartWrap = document.getElementById('heart-wrap');
-  if (REDUCED) {
-    gsap.set(heartWrap, { opacity: 1 });
-    return;
-  }
+  if (REDUCED) { gsap.set(heartWrap, { opacity: 1 }); return; }
   gsap.fromTo(heartWrap,
     { opacity: 0, scale: 0.8 },
     {
-      opacity: 1, scale: 1, duration: 1.0, ease: 'back.out(1.4)',
+      opacity: 1, scale: 1, duration: 1.1, ease: 'back.out(1.4)',
       scrollTrigger: { trigger: '#scene-finale', start: 'top 70%', toggleActions: 'play none none none' }
     }
   );
 }
 
+// ── Reading progress bar ──────────────────────────────────
+function buildProgress() {
+  const bar = document.getElementById('read-progress');
+  if (!bar) return;
+  ScrollTrigger.create({
+    trigger: '#story',
+    start: 'top top',
+    end: 'bottom bottom',
+    onUpdate: self => { bar.style.height = (self.progress * 100) + '%'; },
+  });
+}
+
+// ── Entry point ───────────────────────────────────────────
 export function buildStory() {
   buildChatScene(document.getElementById('scene-start'),   content.start,   false);
   buildChatScene(document.getElementById('scene-playful'), content.playful, false);
@@ -217,4 +240,5 @@ export function buildStory() {
   buildSafeScene();
   buildLetterScene();
   buildFinaleHeart();
+  buildProgress();
 }
