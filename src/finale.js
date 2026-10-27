@@ -16,12 +16,10 @@ export function initFinale() {
   const btnNope    = document.getElementById('btn-nope');
 
   prompt.textContent  = content.finale.prompt;
-  qEl.textContent     = content.finale.question;
   subEl.textContent   = content.finale.questionSub;
   btnYes.textContent  = content.finale.yes;
   btnNope.textContent = content.finale.notYet;
 
-  // Heartbeat pulse
   if (!REDUCED) {
     gsap.to(heart, {
       scale: 1.08, duration: 0.6, repeat: -1, yoyo: true, ease: 'power1.inOut',
@@ -42,6 +40,25 @@ export function initFinale() {
     confetti({ ...defaults, particleCount: big ? 60 : 40, angle: 120, origin: { x: 1, y: 0.6 }, colors });
   }
 
+  function revealWordByWord(el, text, delay, stagger) {
+    el.innerHTML = '';
+    const words = text.split(' ');
+    words.forEach((word, i) => {
+      const span = document.createElement('span');
+      span.style.cssText = 'display: inline; opacity: 0;';
+      span.textContent = i < words.length - 1 ? word + ' ' : word;
+      el.appendChild(span);
+    });
+    if (!REDUCED) {
+      gsap.to(el.querySelectorAll('span'), {
+        opacity: 1, duration: 0.55, ease: 'power2.out', stagger, delay,
+      });
+    } else {
+      gsap.set(el.querySelectorAll('span'), { opacity: 1 });
+    }
+    return words.length * stagger + delay;
+  }
+
   function revealQuestion() {
     if (tapped) return;
     tapped = true;
@@ -50,9 +67,9 @@ export function initFinale() {
     gsap.to(heartWrap, { opacity: 0, scale: 0.8, duration: 0.4, onComplete: () => {
       heartWrap.hidden = true;
       qSection.hidden = false;
-      gsap.fromTo(qEl,       { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' });
-      gsap.fromTo(subEl,     { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.8, delay: 1.5, ease: 'power2.out' });
-      gsap.fromTo(buttonsEl, { opacity: 0 },         { opacity: 1, duration: 0.6, delay: 2.4 });
+      const qDone = revealWordByWord(qEl, content.finale.question, 0.15, 0.1);
+      gsap.fromTo(subEl,     { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.8, delay: qDone + 0.35, ease: 'power2.out' });
+      gsap.fromTo(buttonsEl, { opacity: 0 },         { opacity: 1, duration: 0.6, delay: qDone + 1.25 });
     }});
   }
 
@@ -63,12 +80,10 @@ export function initFinale() {
   btnYes.addEventListener('click', () => {
     navigator.vibrate?.([30, 50, 30, 50, 60]);
     burstConfetti(true);
-
-    // Short delay then show the yes screen
     setTimeout(showYesScreen, 900);
   });
 
-  // ── Dodging "Let me think" — max 5 dodges ─────────────────
+  // ── Dodging "Let me think" — smooth GSAP fly, max 5 dodges ─
   let dodges = 0;
   const MAX_DODGES = 5;
 
@@ -81,16 +96,27 @@ export function initFinale() {
       btnNope.removeEventListener('touchstart',   dodge);
       return;
     }
-    const margin = 16;
+    const margin = 20;
     const bw = btnNope.offsetWidth;
     const bh = btnNope.offsetHeight;
-    const newX = Math.max(margin, Math.random() * (window.innerWidth  - bw  - margin));
-    const newY = Math.max(margin, Math.random() * (window.innerHeight - bh - margin));
-    btnNope.style.position = 'fixed';
-    btnNope.style.left = newX + 'px';
-    btnNope.style.top  = newY + 'px';
-    btnNope.style.zIndex = '300';
-    if (!REDUCED) gsap.fromTo(btnNope, { scale: 0.9 }, { scale: 1, duration: 0.25, ease: 'back.out(1.7)' });
+    const newX = margin + Math.random() * (window.innerWidth  - bw - margin * 2);
+    const newY = margin + Math.random() * (window.innerHeight - bh - margin * 2);
+
+    if (dodges === 1) {
+      const rect = btnNope.getBoundingClientRect();
+      btnNope.style.position = 'fixed';
+      btnNope.style.left = rect.left + 'px';
+      btnNope.style.top  = rect.top  + 'px';
+      btnNope.style.zIndex = '300';
+    }
+
+    if (!REDUCED) {
+      gsap.to(btnNope, { left: newX, top: newY, duration: 0.45, ease: 'back.out(1.5)' });
+      gsap.fromTo(btnNope, { scale: 1.12 }, { scale: 1, duration: 0.3, ease: 'back.out(2)' });
+    } else {
+      btnNope.style.left = newX + 'px';
+      btnNope.style.top  = newY + 'px';
+    }
   }
 
   btnNope.addEventListener('pointerenter', dodge);
@@ -99,17 +125,35 @@ export function initFinale() {
 }
 
 // ── Yes screen ─────────────────────────────────────────────
+function spawnFallingHearts(container) {
+  if (REDUCED) return;
+  for (let i = 0; i < 16; i++) {
+    const h = document.createElement('span');
+    h.className = 'falling-heart';
+    h.textContent = Math.random() > 0.45 ? '♡' : '♥';
+    h.style.cssText = [
+      `left: ${2 + Math.random() * 96}%`,
+      `font-size: ${11 + Math.floor(Math.random() * 16)}px`,
+      `animation-duration: ${3.5 + Math.random() * 3.5}s`,
+      `animation-delay: ${Math.random() * 3.5}s`,
+      `color: ${Math.random() > 0.5 ? 'var(--accent)' : 'var(--accent-2)'}`,
+    ].join(';');
+    container.appendChild(h);
+  }
+}
+
 function showYesScreen() {
-  const screen    = document.getElementById('yes-screen');
-  const heartEl   = screen.querySelector('.yes-heart-shape');
-  const namesEl   = screen.querySelector('.yes-names');
-  const dateEl    = screen.querySelector('.yes-date');
-  const msgEl     = screen.querySelector('.yes-msg');
+  const screen  = document.getElementById('yes-screen');
+  const heartEl = screen.querySelector('.yes-heart-shape');
+  const namesEl = screen.querySelector('.yes-names');
+  const dateEl  = screen.querySelector('.yes-date');
+  const msgEl   = screen.querySelector('.yes-msg');
 
   dateEl.textContent = content.finale.date;
   msgEl.textContent  = content.finale.yesMessage;
 
   screen.hidden = false;
+  spawnFallingHearts(screen);
   gsap.fromTo(screen, { opacity: 0 }, { opacity: 1, duration: 0.9, ease: 'power2.out' });
 
   if (REDUCED) {
@@ -118,7 +162,6 @@ function showYesScreen() {
     return;
   }
 
-  // Heart pops in
   gsap.fromTo(heartEl,
     { rotate: 45, scale: 0 },
     { rotate: 45, scale: 1, duration: 0.7, delay: 0.3, ease: 'back.out(1.6)',
@@ -131,7 +174,6 @@ function showYesScreen() {
   gsap.fromTo(dateEl,  { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.7, delay: 1.5,  ease: 'power2.out' });
   gsap.fromTo(msgEl,   { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.8, delay: 2.1,  ease: 'power2.out' });
 
-  // Second confetti wave after the screen settles
   setTimeout(() => {
     confetti({ particleCount: 80, spread: 100, origin: { y: 0.3 }, colors: ['#ffb86b','#ff6b8a','#fff'], zIndex: 700 });
   }, 2500);

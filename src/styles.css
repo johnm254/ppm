@@ -136,6 +136,25 @@ body {
 .scene-chat { background: var(--bg); }
 .scene-hard-day { background: var(--bg-hard); }
 
+/* ── Scene atmospheres (ID beats class, intentional) ─────── */
+#scene-start {
+  background: radial-gradient(ellipse 80% 60% at 50% 45%, rgba(255,107,138,0.07) 0%, transparent 70%);
+}
+#scene-playful {
+  background: radial-gradient(ellipse 70% 55% at 50% 50%, rgba(255,160,100,0.07) 0%, transparent 68%);
+}
+#scene-hard {
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 50%, rgba(70,80,140,0.1) 0%, transparent 70%),
+    var(--bg-hard);
+}
+#scene-letter {
+  background: radial-gradient(ellipse 80% 70% at 50% 50%, rgba(100,60,160,0.07) 0%, transparent 72%);
+}
+#scene-finale {
+  background: radial-gradient(ellipse 75% 65% at 50% 50%, rgba(255,184,107,0.08) 0%, transparent 70%);
+}
+
 .chat-container {
   width: 100%;
   max-width: 460px;
@@ -213,28 +232,34 @@ body {
 }
 .photo-item:nth-child(odd)  { --tilt: -2.5deg; }
 .photo-item:nth-child(even) { --tilt:  2.5deg; }
-.photo-item img {
+.photo-frame {
+  background: #fdf0ec;
+  padding: 10px 10px 0;
+  border-radius: 3px;
+  box-shadow: 0 12px 50px rgba(0,0,0,0.6), 0 3px 12px rgba(0,0,0,0.35);
   width: 100%;
   max-width: 88vw;
-  aspect-ratio: 4/5;
-  object-fit: cover;
-  border-radius: 3px;
-  border: 10px solid #fdf0ec;
-  border-bottom-width: 36px;
-  box-shadow: 0 12px 50px rgba(0,0,0,0.6), 0 3px 12px rgba(0,0,0,0.35);
   transform: rotate(var(--tilt));
   transition: transform 0.55s cubic-bezier(0.25,0.46,0.45,0.94), box-shadow 0.4s ease;
 }
-.photo-item:hover img {
+.photo-item:hover .photo-frame {
   transform: rotate(0deg) scale(1.015);
   box-shadow: 0 18px 64px rgba(0,0,0,0.65), 0 4px 18px rgba(255,107,138,0.14);
 }
+.photo-frame img {
+  width: 100%;
+  display: block;
+  aspect-ratio: 4/5;
+  object-fit: cover;
+  border-radius: 2px 2px 0 0;
+}
 .photo-caption {
   font-family: var(--serif);
-  font-size: 16px;
-  color: var(--muted);
+  font-size: 13px;
+  color: #7a5e5e;
   font-style: italic;
   text-align: center;
+  padding: 9px 10px 14px;
 }
 
 /* ── Safe scene ───────────────────────────────────────────── */
@@ -314,6 +339,22 @@ body {
 }
 .letter-skip:hover { color: var(--accent); }
 .letter-skip.hidden { opacity: 0; pointer-events: none; }
+
+/* ── Typewriter cursor ────────────────────────────────────── */
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+.typewriter-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: var(--accent);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  border-radius: 1px;
+  animation: cursor-blink 1s step-end infinite;
+}
 
 /* ── Finale ───────────────────────────────────────────────── */
 .scene-finale {
@@ -524,7 +565,41 @@ body {
   #scroll-hint { animation: none; }
 }
 
-/* ── Song note label ──────────────────────────────────────── */
+/* ── Song note label + equalizer ────────────────────────────*/
+@keyframes note-bounce {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  35%       { transform: translateY(-3px) rotate(-12deg); }
+  65%       { transform: translateY(-1px) rotate(4deg); }
+}
+@keyframes eq-bar {
+  0%, 100% { transform: scaleY(0.4); }
+  50%       { transform: scaleY(1.3); }
+}
+.note-icon {
+  display: inline-block;
+  animation: note-bounce 1.6s ease-in-out infinite;
+}
+.note-eq {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 11px;
+  margin-left: 2px;
+}
+.note-eq b {
+  display: block;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--accent);
+  transform-origin: bottom;
+  font-style: normal;
+  font-weight: normal;
+  animation: eq-bar 0.7s ease-in-out infinite;
+}
+.note-eq b:nth-child(1) { height: 5px; }
+.note-eq b:nth-child(2) { height: 9px;  animation-delay: 0.18s; }
+.note-eq b:nth-child(3) { height: 6px;  animation-delay: 0.09s; }
+
 #song-note {
   position: fixed;
   bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
@@ -602,6 +677,21 @@ body {
   font-size: 14px;
   color: var(--muted);
   font-style: italic;
+}
+
+/* ── Falling hearts (yes screen rain) ────────────────────── */
+@keyframes heart-fall {
+  0%   { transform: translateY(0)     rotate(-12deg); opacity: 0.85; }
+  75%  { opacity: 0.7; }
+  100% { transform: translateY(108vh) rotate(14deg);  opacity: 0;    }
+}
+.falling-heart {
+  position: absolute;
+  top: -40px;
+  animation: heart-fall linear infinite;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
 }
 
 /* ── Yes screen ───────────────────────────────────────────── */
@@ -683,6 +773,8 @@ body {
 @media (prefers-reduced-motion: reduce) {
   #particles { display: none; }
   .scene-safe::before, .yes-glow { animation: none; }
+  .falling-heart { display: none; }
+  .note-icon, .note-eq b, .typewriter-cursor { animation: none; }
   * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
 

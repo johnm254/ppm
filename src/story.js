@@ -119,13 +119,16 @@ function buildPhotosScene() {
     img.loading  = 'lazy';
     img.decoding = 'async';
 
-    item.appendChild(img);
+    const frame = document.createElement('div');
+    frame.className = 'photo-frame';
+    frame.appendChild(img);
     if (entry.caption) {
       const cap = document.createElement('p');
       cap.className   = 'photo-caption';
       cap.textContent = entry.caption;
-      item.appendChild(cap);
+      frame.appendChild(cap);
     }
+    item.appendChild(frame);
     stack.appendChild(item);
 
     if (REDUCED) {
