@@ -109,7 +109,13 @@
     <section id="scene-finale" class="scene scene-finale">
       <div class="finale-inner">
         <div id="heart-wrap">
-          <div id="heart" role="button" tabindex="0" aria-label="Tap the heart"></div>
+          <div id="heart-glow-wrap">
+            <button id="heart" aria-label="Tap the heart">
+              <svg viewBox="0 0 100 88" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                <path d="M50 82C46 78 6 56 6 30C6 16.7 16.7 6 30 6C38.4 6 45.8 10.3 50 17C54.2 10.3 61.6 6 70 6C83.3 6 94 16.7 94 30C94 56 54 78 50 82Z"/>
+              </svg>
+            </button>
+          </div>
           <p id="heart-prompt"></p>
         </div>
         <div id="finale-question" hidden>
